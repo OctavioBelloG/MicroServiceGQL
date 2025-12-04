@@ -1,0 +1,250 @@
+# ================= QUERIES (Consultas) =================
+type Query {
+    # --- PATIENT ---
+    getPatientsPaged(page: Int, pageSize: Int): [PatientResponse]
+    searchPatientsByName(name: String!, page: Int, pageSize: Int): [PatientResponse]
+    getPatientsWithAppointments(page: Int, pageSize: Int): [PatientResponse]
+    findPatientById(patientId: ID!): PatientResponse
+    findAll: [PatientResponse] # Añadido según tu controller
+
+    # --- DOCTOR ---
+    getDoctorsPaged(page: Int, size: Int): [DoctorResponse]
+    findDoctorById(id: ID!): DoctorResponse
+    getDoctorsBySpecialty(specialtyId: ID!, page: Int, size: Int): [DoctorResponse]
+    getTopRatedDoctors(limit: Int): [DoctorResponse]
+
+    # --- APPOINTMENT ---
+    findAllAppointments: [AppointmentResponse]
+    findAppointmentById(id: ID!): AppointmentResponse
+    
+    # --- MEDICAL RECORD ---
+    getMedicalRecordByPatient(patientId: ID!): MedicalRecordResponse
+    searchMedicalRecords(keyword: String!): [MedicalRecordResponse]
+
+    # --- MEDICAL INSURANCE ---
+    getInsuranceByPatient(patientId: ID!): [MedicalInsuranceResponse]
+    getExpiredPolicies: [MedicalInsuranceResponse]
+    findInsuranceById(id: ID!): MedicalInsuranceResponse
+
+    # --- NOTIFICATION ---
+    getNotificationsByUser(userId: ID!, page: Int, pageSize: Int): [NotificationResponse]
+    getUnreadNotifications(userId: ID!): [NotificationResponse]
+
+    # --- USER ---
+    findUserById(id: ID!): UserResponse
+    getUsersByRole(roleId: ID!, page: Int, size: Int): [UserResponse]
+
+    # --- SCHEDULE & SPECIALTY ---
+    findAllSchedules: [ScheduleResponse]
+    findScheduleById(id: ID!): ScheduleResponse
+    findAllSpecialties: [SpecialtyResponse]
+    findSpecialtyById(id: ID!): SpecialtyResponse
+}
+
+# ================= MUTATIONS (Modificaciones) =================
+type Mutation {
+    # --- PATIENT ---
+    create(req: PatientRequest!): PatientResponse
+    update(patientId: ID!, req: PatientRequest!): PatientResponse
+
+    # --- DOCTOR ---
+    createDoctor(req: DoctorRequest!): DoctorResponse
+    updateDoctor(id: ID!, req: DoctorRequest!): DoctorResponse
+
+    # --- APPOINTMENT ---
+    createAppointment(req: AppointmentRequest!): AppointmentResponse
+    updateAppointment(id: ID!, req: AppointmentRequest!): AppointmentResponse
+
+    # --- MEDICAL RECORD ---
+    createMedicalRecord(req: MedicalRecordRequest!): MedicalRecordResponse
+    updateMedicalRecord(id: ID!, req: MedicalRecordRequest!): MedicalRecordResponse
+    updateMedicalRecordDate(id: ID!): MedicalRecordResponse
+
+    # --- MEDICAL INSURANCE ---
+    createInsurance(req: MedicalInsuranceRequest!): MedicalInsuranceResponse
+    updateInsurance(id: ID!, req: MedicalInsuranceRequest!): MedicalInsuranceResponse
+
+    # --- NOTIFICATION ---
+    createNotification(req: NotificationRequest!): NotificationResponse
+    updateNotificationStatus(id: ID!, status: String!): NotificationResponse
+
+    # --- USER ---
+    registerUser(req: UserRequest!): UserResponse
+    updateUser(id: ID!, req: UserRequest!): UserResponse
+    changeUserStatus(id: ID!, status: String!): UserResponse
+
+    # --- SCHEDULE & SPECIALTY ---
+    createSchedule(req: ScheduleRequest!): ScheduleResponse
+    updateSchedule(id: ID!, req: ScheduleRequest!): ScheduleResponse
+    createSpecialty(req: SpecialtyRequest!): SpecialtyResponse
+    updateSpecialty(id: ID!, req: SpecialtyRequest!): SpecialtyResponse
+}
+
+# ================= TYPES & INPUTS =================
+
+# --- ADDRESS ---
+type AddressType {
+    addressId: ID
+    street: String
+    intNumber: String
+    extNumber: String
+    neighborhood: String
+    city: String
+    zipCode: String
+}
+input AddressInput {
+    street: String
+    intNumber: String
+    extNumber: String
+    neighborhood: String
+    city: String
+    zipCode: String
+}
+
+# --- PATIENT ---
+type PatientResponse {
+    patientId: ID
+    firstName: String
+    paternalSurname: String
+    maternalSurname: String
+    birthDate: String      # CAMBIADO: Date -> String
+    phone: String
+    address: AddressType
+    userId: ID
+}
+input PatientRequest {
+    firstName: String!
+    paternalSurname: String!
+    maternalSurname: String
+    birthDate: String      # CAMBIADO: Date -> String
+    phone: String
+    address: AddressInput
+    userId: ID
+}
+
+# --- DOCTOR ---
+type DoctorResponse {
+    doctorId: ID
+    fullName: String
+    registrationNumber: String
+    rating: Float          # CAMBIADO: BigDecimal -> Float
+    specialtyName: String
+    userId: ID
+}
+input DoctorRequest {
+    userId: ID!
+    specialtyId: ID!
+    fullName: String!
+    registrationNumber: String!
+}
+
+# --- APPOINTMENT ---
+type AppointmentResponse {
+    appointmentId: ID
+    patientId: ID
+    doctorId: ID
+    scheduleId: ID
+    date: String           # CAMBIADO: DateTime -> String
+    consultationType: String
+    status: String
+}
+input AppointmentRequest {
+    patientId: ID!
+    doctorId: ID!
+    scheduleId: ID!
+    date: String!          # CAMBIADO: DateTime -> String
+    consultationType: String
+    status: String
+}
+
+# --- MEDICAL RECORD ---
+type MedicalRecordResponse {
+    recordId: ID
+    patientId: ID
+    allergies: String
+    vaccines: String
+    medicalHistory: String
+    notes: String
+    lastUpdated: String    # CAMBIADO: DateTime -> String
+}
+input MedicalRecordRequest {
+    patientId: ID
+    allergies: String
+    vaccines: String
+    medicalHistory: String
+    notes: String
+}
+
+# --- INSURANCE ---
+type MedicalInsuranceResponse {
+    insuranceId: ID
+    patientId: ID
+    policyNumber: String
+    company: String
+    coverage: String
+    expirationDate: String # CAMBIADO: Date -> String
+}
+input MedicalInsuranceRequest {
+    patientId: ID
+    policyNumber: String
+    company: String
+    coverage: String
+    expirationDate: String # CAMBIADO: Date -> String
+}
+
+# --- NOTIFICATION ---
+type NotificationResponse {
+    notificationId: ID
+    userId: ID
+    type: String
+    message: String
+    status: String
+    sendDate: String       # CAMBIADO: DateTime -> String
+}
+input NotificationRequest {
+    userId: ID!
+    type: String!
+    message: String!
+    status: String
+}
+
+# --- USER ---
+type UserResponse {
+    userId: ID
+    username: String
+    email: String
+    status: String
+    role: String
+}
+input UserRequest {
+    username: String!
+    password: String!
+    email: String!
+    roleId: ID!
+    status: String
+}
+
+# --- SCHEDULE & SPECIALTY ---
+type ScheduleResponse {
+    scheduleId: ID
+    doctorId: ID
+    dayOfWeek: String
+    startTime: String
+    endTime: String
+}
+input ScheduleRequest {
+    doctorId: ID!
+    dayOfWeek: String
+    startTime: String
+    endTime: String
+}
+
+type SpecialtyResponse {
+    specialtyId: ID
+    name: String
+    description: String
+}
+input SpecialtyRequest {
+    name: String
+    description: String
+}
